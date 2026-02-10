@@ -21,7 +21,7 @@ class ImportService:
             ("dictionary.csv", DictionaryService.import_dictionary_from_csv),
             ("credits.csv", CreditService.import_credits_from_csv),
             ("payments.csv", PaymentService.import_payments_from_csv),
-            ("plans.csv", PlanService.insert_plans_from_excel)
+            ("plans.csv", PlanService.insert_plans_from_csv)
         ]
         log = []
         for file_name, func in steps:

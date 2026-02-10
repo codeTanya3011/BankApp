@@ -1,19 +1,30 @@
 import pytest
 from httpx import AsyncClient
+import io
+import pandas as pd
 
 
 @pytest.mark.asyncio
 async def test_import_plans_invalid_file(ac: AsyncClient):
-    files = {'file': ('test.txt', b'wrong content', 'text_task/plain')}
+    files = {'file': ('test.txt', b'wrong content', 'text/plain')}
     response = await ac.post("/plans/insert", files=files)
-    assert response.status_code in [200, 422, 500]
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Наданий файл не є валідним Excel-файлом"
 
 
 @pytest.mark.asyncio
 async def test_import_plans_empty_file(ac: AsyncClient):
-    csv_content = b"period,category_id,plan_sum"
-    files = {'file': ('empty.csv', csv_content, 'text_task/csv')}
+    output = io.BytesIO()
+    df = pd.DataFrame(columns=["period", "category_id", "sum"])
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+
+    excel_content = output.getvalue()
+
+    files = {'file': ('empty.xlsx', excel_content, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}
     response = await ac.post("/plans/insert", files=files)
+
     assert response.status_code == 200
 
 
